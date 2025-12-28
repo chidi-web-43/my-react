@@ -1,0 +1,32 @@
+/* Apply Poppins to the whole website */
+body, html {
+  font-family: 'Poppins', sans-serif;
+}
+
+.footer-link {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.footer-link:hover {
+  text-decoration: underline;
+  color: #20c997;
+}
+
+.social-icon {
+  width: 35px;
+  height: 35px;
+  background: #20c997;
+  color: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  text-decoration: none;
+  transition: 0.3s ease;
+}
+
+.social-icon:hover {
+  background: #fff;
+  color: #20c997;
+}
