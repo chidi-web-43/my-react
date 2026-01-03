@@ -6,44 +6,46 @@ import Footer from "../components/Footer";
 function AdminDashboard() {
   const navigate = useNavigate();
 
-  const [votingStatus, setVotingStatus] = useState(
-    localStorage.getItem("votingStatus") || "closed"
+  // ✅ CURRENT ELECTION YEAR
+  const [electionYear, setElectionYear] = useState(
+    localStorage.getItem("electionYear") || new Date().getFullYear().toString()
   );
+
+  // ✅ VOTING STATUS PER YEAR
+  const [votingStatus, setVotingStatus] = useState(
+    localStorage.getItem(`votingStatus_${electionYear}`) || "closed"
+  );
+
+  useEffect(() => {
+    localStorage.setItem("electionYear", electionYear);
+
+    const status =
+      localStorage.getItem(`votingStatus_${electionYear}`) || "closed";
+    setVotingStatus(status);
+  }, [electionYear]);
 
   const handleLogout = () => {
     localStorage.removeItem("adminAuth");
     navigate("/admin-login");
   };
 
-  // ✅ START VOTING
   const startVoting = () => {
-    localStorage.setItem("votingStatus", "open");
+    localStorage.setItem(`votingStatus_${electionYear}`, "open");
     setVotingStatus("open");
-    alert("✅ Voting has started");
+    alert(`✅ Voting started for ${electionYear}`);
   };
 
-  // ❌ END VOTING
   const endVoting = () => {
-    localStorage.setItem("votingStatus", "closed");
+    localStorage.setItem(`votingStatus_${electionYear}`, "closed");
     setVotingStatus("closed");
-    alert("❌ Voting has ended");
+    alert(`❌ Voting ended for ${electionYear}`);
   };
-
-  useEffect(() => {
-    const status = localStorage.getItem("votingStatus");
-    if (!status) {
-      localStorage.setItem("votingStatus", "closed");
-    }
-  }, []);
 
   return (
     <div style={{ minHeight: "100vh", background: "#f4f6f9" }}>
-
       {/* TOP NAVBAR */}
       <nav className="navbar navbar-dark bg-primary px-4 sticky-top">
-        <span className="navbar-brand fw-bold">
-          SUG Admin Dashboard
-        </span>
+        <span className="navbar-brand fw-bold">SUG Admin Dashboard</span>
         <button onClick={handleLogout} className="btn btn-light btn-sm">
           Logout
         </button>
@@ -51,72 +53,65 @@ function AdminDashboard() {
 
       <div className="container py-5">
 
-        {/* WELCOME CARD */}
+        {/* ELECTION YEAR */}
         <div className="card shadow-sm mb-4">
           <div className="card-body">
-            <h4 className="fw-bold mb-1">Welcome, Admin 👋</h4>
-            <p className="text-muted mb-0">
-              Manage all election processes from here.
-            </p>
+            <h5 className="fw-bold">Election Year</h5>
+            <select
+              className="form-select mt-2"
+              value={electionYear}
+              onChange={(e) => setElectionYear(e.target.value)}
+            >
+              <option value="2024">2024</option>
+              <option value="2025">2025</option>
+              <option value="2026">2026</option>
+            </select>
           </div>
         </div>
 
-        {/* DASHBOARD CARDS */}
+        {/* ACTION BUTTONS */}
         <div className="row">
-
           <div className="col-md-4 mb-4">
-            <div className="card border-0 shadow-sm h-100 text-center p-3">
-              <h5 className="fw-bold">Upload Students</h5>
-              <p className="text-muted mt-2">
-                Add eligible students via CSV or form.
-              </p>
-              <button className="btn btn-primary mt-3 w-100">
-                Upload
-              </button>
-            </div>
+            <button
+              className="btn btn-primary w-100"
+              onClick={() => navigate("/upload-student")}
+            >
+              Upload Students
+            </button>
           </div>
 
           <div className="col-md-4 mb-4">
-            <div className="card border-0 shadow-sm h-100 text-center p-3">
-              <h5 className="fw-bold">Manage Candidates</h5>
-              <p className="text-muted mt-2">
-                View or edit candidate information.
-              </p>
-              <button className="btn btn-primary mt-3 w-100">
-                View Candidates
-              </button>
-            </div>
+            <button
+              className="btn btn-primary w-100"
+              onClick={() => navigate("/admin/manage-candidates")}
+            >
+              Manage Candidates
+            </button>
           </div>
 
           <div className="col-md-4 mb-4">
-            <div className="card border-0 shadow-sm h-100 text-center p-3">
-              <h5 className="fw-bold">Election Results</h5>
-              <p className="text-muted mt-2">
-                Check votes and monitor results live.
-              </p>
-              <button className="btn btn-primary mt-3 w-100">
-                View Results
-              </button>
-            </div>
+            <button
+              className="btn btn-primary w-100"
+              onClick={() => navigate("/results")}
+            >
+              View Results
+            </button>
           </div>
-
         </div>
 
-        {/* VOTING CONTROL PANEL */}
+        {/* VOTING CONTROL */}
         <div className="card shadow-sm mt-4">
           <div className="card-body text-center">
-            <h5 className="fw-bold mb-3">Voting Control</h5>
+            <h5 className="fw-bold">Voting Control</h5>
 
-            <p className="fw-semibold mb-3">
-              Current Status:
+            <p className="fw-semibold">
+              Status:
               <span
                 className={`ms-2 ${
-                  votingStatus === "open"
-                    ? "text-success"
-                    : "text-danger"
+                  votingStatus === "open" ? "text-success" : "text-danger"
                 }`}
               >
-                {votingStatus === "open" ? "OPEN" : "CLOSED"}
+                {votingStatus.toUpperCase()}
               </span>
             </p>
 
@@ -137,7 +132,6 @@ function AdminDashboard() {
             </button>
           </div>
         </div>
-
       </div>
 
       <Footer />

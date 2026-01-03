@@ -1,72 +1,75 @@
-// src/pages/Results.jsx
-import { Link } from "react-router-dom";
-import Footer from "../components/Footer";
+import { useEffect, useState } from "react";
 
 function Results() {
-  // Example results data (replace with backend later)
-  const results = [
-    { name: "John Doe", votes: 120 },
-    { name: "Jane Smith", votes: 95 },
-    { name: "Ali Musa", votes: 80 },
-    { name: "Grace Okoro", votes: 60 },
-  ];
+  const electionYear =
+    localStorage.getItem("electionYear") || new Date().getFullYear().toString();
 
-  // Find the candidate with the highest votes
-  const maxVotes = Math.max(...results.map(c => c.votes));
-  const winner = results.find(c => c.votes === maxVotes);
+  const [candidates, setCandidates] = useState([]);
+  const [votes, setVotes] = useState({});
+
+  // ================= LOAD DATA =================
+  useEffect(() => {
+    const storedCandidates =
+      JSON.parse(localStorage.getItem(`candidates_${electionYear}`)) || [];
+
+    const storedVotes =
+      JSON.parse(localStorage.getItem(`votes_${electionYear}`)) || {};
+
+    setCandidates(storedCandidates);
+    setVotes(storedVotes);
+  }, [electionYear]);
 
   return (
-    <div style={{ fontFamily: 'Poppins, sans-serif', minHeight: "100vh", background: "#f4f6f9" }}>
-      
-      {/* HERO / HEADER */}
-      <div className="bg-success text-white py-5 text-center">
-        <h2 className="fw-bold mb-2">SUG Election Results</h2>
-        <p className="lead mb-0">Official tally of votes for Students’ Union Government (SUG)</p>
-      </div>
+    <div style={{ minHeight: "100vh", background: "#f4f6f9" }}>
+      {/* ================= NAV ================= */}
+      <nav className="navbar navbar-dark bg-dark px-4">
+        <span className="navbar-brand fw-bold">
+          Election Results – {electionYear}
+        </span>
+      </nav>
 
-      {/* WINNER CARD */}
-      <div className="container py-4">
-        <div className="card border-success shadow-sm mb-5">
-          <div className="card-body text-center">
-            <h4 className="fw-bold">🎉 Winner 🎉</h4>
-            <h3 className="text-success mt-2">{winner.name}</h3>
-            <p className="mb-0">Total Votes: <strong>{winner.votes}</strong></p>
-          </div>
-        </div>
-
-        {/* RESULTS TABLE */}
+      <div className="container py-5">
         <div className="card shadow-sm">
           <div className="card-body">
-            <h5 className="card-title mb-4">Vote Tally</h5>
-            <table className="table table-striped table-hover">
-              <thead className="table-success">
-                <tr>
-                  <th>#</th>
-                  <th>Candidate</th>
-                  <th>Votes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {results.map((candidate, index) => (
-                  <tr key={index} className={candidate.name === winner.name ? "table-success fw-bold" : ""}>
-                    <td>{index + 1}</td>
-                    <td>{candidate.name}</td>
-                    <td>{candidate.votes}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <h4 className="fw-bold mb-3">Official Results</h4>
 
-            <div className="text-center mt-4">
-              <Link to="/" className="btn btn-outline-success">
-                Back to Home
-              </Link>
-            </div>
+            {candidates.length === 0 ? (
+              <p className="text-danger text-center">
+                No election data available.
+              </p>
+            ) : (
+              <div className="table-responsive">
+                <table className="table table-bordered text-center">
+                  <thead className="table-dark">
+                    <tr>
+                      <th>#</th>
+                      <th>Candidate Name</th>
+                      <th>Position</th>
+                      <th>Total Votes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {candidates.map((candidate, index) => (
+                      <tr key={candidate.id}>
+                        <td>{index + 1}</td>
+                        <td>{candidate.name}</td>
+                        <td>{candidate.position}</td>
+                        <td className="fw-bold">
+                          {votes[candidate.id] || 0}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
         </div>
-      </div>
 
-      <Footer />
+        <div className="alert alert-secondary mt-4 text-center">
+          📌 Results displayed are automatically computed from submitted votes.
+        </div>
+      </div>
     </div>
   );
 }

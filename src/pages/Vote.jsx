@@ -1,62 +1,128 @@
-import CandidateCard from "../components/CandidateCard";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 function Vote() {
   const navigate = useNavigate();
+
   const matricNumber = localStorage.getItem("matricNumber");
+  const studentName = localStorage.getItem("studentName");
 
-  // ✅ GET VOTING STATUS
-  const votingStatus = localStorage.getItem("votingStatus");
+  const electionYear =
+    localStorage.getItem("electionYear") || new Date().getFullYear().toString();
 
-  const candidates = [
-    { name: "John Doe", manifesto: "Improve student welfare", photo: "https://randomuser.me/api/portraits/men/32.jpg" },
-    { name: "Jane Smith", manifesto: "Enhance campus facilities", photo: "https://randomuser.me/api/portraits/women/44.jpg" },
-    { name: "Ali Musa", manifesto: "Better library services", photo: "https://randomuser.me/api/portraits/men/76.jpg" },
-    { name: "Grace Okoro", manifesto: "More extracurricular activities", photo: "https://randomuser.me/api/portraits/women/68.jpg" },
-  ];
+  const votingStatus =
+    localStorage.getItem(`votingStatus_${electionYear}`) || "closed";
 
-  const handleVote = (name) => {
-    const hasVoted = localStorage.getItem(`voted_${matricNumber}`);
+  const [candidates, setCandidates] = useState([]);
+  const [selectedCandidate, setSelectedCandidate] = useState("");
 
-    if (hasVoted === "true") {
-      alert("You have already voted!");
+  // ================= LOAD CANDIDATES =================
+  useEffect(() => {
+    const storedCandidates =
+      JSON.parse(localStorage.getItem(`candidates_${electionYear}`)) || [];
+
+    setCandidates(storedCandidates);
+  }, [electionYear]);
+
+  // ================= CHECK CONDITIONS =================
+  useEffect(() => {
+    if (votingStatus !== "open") {
+      alert("Voting is currently closed.");
       navigate("/dashboard");
+    }
+
+    const voted = localStorage.getItem(
+      `voted_${electionYear}_${matricNumber}`
+    );
+
+    if (voted === "true") {
+      alert("You have already voted.");
+      navigate("/dashboard");
+    }
+  }, [navigate, matricNumber, electionYear, votingStatus]);
+
+  // ================= SUBMIT VOTE =================
+  const handleVote = () => {
+    if (!selectedCandidate) {
+      alert("Please select a candidate.");
       return;
     }
 
-    localStorage.setItem(`voted_${matricNumber}`, "true");
-    localStorage.setItem(`vote_${matricNumber}`, name);
+    const votesKey = `votes_${electionYear}`;
+    const votes = JSON.parse(localStorage.getItem(votesKey)) || {};
 
-    alert(`Vote successfully cast for ${name}`);
+    votes[selectedCandidate] = (votes[selectedCandidate] || 0) + 1;
+
+    localStorage.setItem(votesKey, JSON.stringify(votes));
+
+    localStorage.setItem(
+      `voted_${electionYear}_${matricNumber}`,
+      "true"
+    );
+
+    alert("Your vote has been submitted successfully.");
     navigate("/dashboard");
   };
 
-  // 🚫 STOP RENDERING IF VOTING IS CLOSED
-  if (votingStatus !== "open") {
-    return (
-      <div className="container text-center mt-5">
-        <h3 className="text-danger fw-bold">Voting is currently closed</h3>
-        <p>Please wait for the Electoral Committee to open voting.</p>
-      </div>
-    );
-  }
-
-  // ✅ RENDER VOTING UI ONLY IF OPEN
   return (
-    <div className="container mt-5">
-      <h2 className="text-center mb-4">Cast Your Vote</h2>
+    <div style={{ minHeight: "100vh", background: "#f4f6f9" }}>
+      {/* ================= NAV ================= */}
+      <nav className="navbar navbar-dark bg-success px-4">
+        <span className="navbar-brand fw-bold">
+          SUG Voting – {electionYear}
+        </span>
+      </nav>
 
-      <div className="row g-3">
-        {candidates.map((c, index) => (
-          <div key={index} className="col-12 col-sm-6 col-md-4 col-lg-3">
-            <CandidateCard
-              name={c.name}
-              manifesto={c.manifesto}
-              photo={c.photo}
-              onVote={() => handleVote(c.name)}
-            />
+      <div className="container py-5">
+        <div className="card shadow-sm">
+          <div className="card-body">
+            <h4 className="fw-bold mb-2">Cast Your Vote</h4>
+            <p className="text-muted">
+              Student: <strong>{studentName}</strong> | Matric:{" "}
+              <strong>{matricNumber}</strong>
+            </p>
+
+            <hr />
+
+            {candidates.length === 0 ? (
+              <p className="text-danger text-center">
+                No candidates available for this election year.
+              </p>
+            ) : (
+              <form>
+                {candidates.map((candidate) => (
+                  <div
+                    key={candidate.id}
+                    className="form-check border rounded p-3 mb-3"
+                  >
+                    <input
+                      className="form-check-input"
+                      type="radio"
+                      name="candidate"
+                      value={candidate.id}
+                      onChange={() => setSelectedCandidate(candidate.id)}
+                    />
+                    <label className="form-check-label ms-2">
+                      <strong>{candidate.name}</strong>
+                      <br />
+                      <small className="text-muted">
+                        Position: {candidate.position}
+                      </small>
+                    </label>
+                  </div>
+                ))}
+
+                <button
+                  type="button"
+                  className="btn btn-success w-100 mt-3"
+                  onClick={handleVote}
+                >
+                  Submit Vote
+                </button>
+              </form>
+            )}
           </div>
-        ))}
+        </div>
       </div>
     </div>
   );

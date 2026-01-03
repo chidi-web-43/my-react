@@ -1,39 +1,33 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
+
 import Home from "./pages/Home";
 import Login from "./pages/Login";
-import AdminLogin from "./admin/AdminLogin";
-import AdminDashboard from "./admin/AdminDashboard";
 import Dashboard from "./pages/Dashboard";
 import Vote from "./pages/Vote";
 import Results from "./pages/Results";
+
+import AdminLogin from "./admin/AdminLogin";
+import AdminDashboard from "./admin/AdminDashboard";
+import UploadStudent from "./admin/UploadStudent";
+import ManageCandidates from "./admin/ManageCandidates";
+
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
 
 function App() {
   return (
     <Router>
       <Navbar />
-      <Routes>
-        {/* HOME PAGE */}
-        <Route path="/" element={<Home />} />
 
-        {/* AUTH */}
+      <Routes>
+        {/* ================= PUBLIC ================= */}
+        <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/admin-login" element={<AdminLogin />} />
-        {/* ADMIN DASHBOARD */}
-        <Route
-          path="/admin-dashboard"
-          element={
-            <ProtectedRoute type="admin">
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* RESULTS */}
         <Route path="/results" element={<Results />} />
 
-        {/* STUDENT DASHBOARD */}
+        {/* ================= STUDENT ================= */}
         <Route
           path="/dashboard"
           element={
@@ -50,16 +44,33 @@ function App() {
               <Vote />
             </ProtectedRoute>
           }
-
         />
 
-        {/* VOTING PAGE */}
+        {/* ================= ADMIN ================= */}
         <Route
-          path="/vote"
+          path="/admin-dashboard"
           element={
-            <ProtectedRoute>
-              <Vote />
-            </ProtectedRoute>
+            <AdminRoute>
+              <AdminDashboard />
+            </AdminRoute>
+          }
+        />
+
+        <Route
+          path="/upload-student"
+          element={
+            <AdminRoute>
+              <UploadStudent />
+            </AdminRoute>
+          }
+        />
+
+        <Route
+          path="/admin/manage-candidates"
+          element={
+            <AdminRoute>
+              <ManageCandidates />
+            </AdminRoute>
           }
         />
       </Routes>

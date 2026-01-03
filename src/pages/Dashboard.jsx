@@ -3,31 +3,42 @@ import { useEffect, useState } from "react";
 
 function Dashboard() {
   const navigate = useNavigate();
-  const matricNumber = localStorage.getItem("matricNumber");
 
-  // ✅ ADD THIS
-  const votingStatus = localStorage.getItem("votingStatus");
+  // ================= AUTH DATA =================
+  const matricNumber = localStorage.getItem("matricNumber");
+  const studentName = localStorage.getItem("studentName");
+
+  // ================= ELECTION DATA =================
+  const electionYear =
+    localStorage.getItem("electionYear") || new Date().getFullYear().toString();
+
+  const votingStatus =
+    localStorage.getItem(`votingStatus_${electionYear}`) || "closed";
 
   const [hasVoted, setHasVoted] = useState(false);
 
+  // ================= CHECK VOTE STATUS =================
   useEffect(() => {
-    const voted = localStorage.getItem(`voted_${matricNumber}`);
-    if (voted === "true") setHasVoted(true);
-  }, [matricNumber]);
+    const voted = localStorage.getItem(
+      `voted_${electionYear}_${matricNumber}`
+    );
+    setHasVoted(voted === "true");
+  }, [matricNumber, electionYear]);
 
+  // ================= LOGOUT =================
   const handleLogout = () => {
     localStorage.removeItem("studentAuth");
     localStorage.removeItem("matricNumber");
+    localStorage.removeItem("studentName");
     navigate("/login");
   };
 
   return (
     <div style={{ minHeight: "100vh", background: "#f4f6f9" }}>
-
-      {/* TOP BAR */}
-      <nav className="navbar navbar-dark bg-success px-4">
+      {/* ================= TOP BAR ================= */}
+      <nav className="navbar navbar-dark bg-success px-4 sticky-top">
         <span className="navbar-brand fw-bold">
-          SUG Voting Dashboard
+          SUG Voting Dashboard – {electionYear}
         </span>
         <button onClick={handleLogout} className="btn btn-light btn-sm">
           Logout
@@ -36,56 +47,72 @@ function Dashboard() {
 
       <div className="container py-5">
 
-        {/* WELCOME */}
+        {/* ================= WELCOME CARD ================= */}
         <div className="card shadow-sm mb-4">
           <div className="card-body">
-            <h4 className="fw-bold">Welcome, Student 👋</h4>
+            <h4 className="fw-bold mb-1">
+              Welcome, {studentName} 👋
+            </h4>
             <p className="text-muted mb-0">
               Matric Number: <strong>{matricNumber}</strong>
             </p>
           </div>
         </div>
 
-        {/* DASHBOARD CARDS */}
+        {/* ================= DASHBOARD CARDS ================= */}
         <div className="row">
 
-          {/* STATUS */}
+          {/* ===== VOTING STATUS ===== */}
           <div className="col-md-4 mb-4">
             <div className="card shadow-sm h-100 text-center">
               <div className="card-body">
-                <h5 className="fw-bold">Voting Status</h5>
+                <h5 className="fw-bold">Your Voting Status</h5>
 
                 {hasVoted ? (
                   <p className="text-success fw-semibold mt-3">
-                    ✅ Voted
+                    ✅ You have voted
                   </p>
                 ) : (
                   <p className="text-danger fw-semibold mt-3">
-                    ❌ Not Voted
+                    ❌ You have not voted
                   </p>
                 )}
 
                 <small className="text-muted">
-                  One student, one vote.
+                  One vote per student per year.
                 </small>
               </div>
             </div>
           </div>
 
-          {/* ELECTION INFO */}
+          {/* ===== ELECTION INFO ===== */}
           <div className="col-md-4 mb-4">
             <div className="card shadow-sm h-100 text-center">
               <div className="card-body">
-                <h5 className="fw-bold">Election Info</h5>
-                <p className="mt-3">SUG Presidential Election</p>
-                <small className="text-muted">
-                  Voting Period: Only Monday
-                </small>
+                <h5 className="fw-bold">Election Information</h5>
+
+                <p className="mt-3 mb-1">
+                  Students’ Union Government (SUG)
+                </p>
+
+                <p className="fw-semibold">
+                  Election Year: {electionYear}
+                </p>
+
+                <p
+                  className={`fw-bold ${
+                    votingStatus === "open"
+                      ? "text-success"
+                      : "text-danger"
+                  }`}
+                >
+                  Voting is {votingStatus.toUpperCase()}
+                </p>
               </div>
             </div>
           </div>
 
-          {/* ACTION */}
+          {/* ===== ACTION ===== */}
           <div className="col-md-4 mb-4">
             <div className="card shadow-sm h-100 text-center">
               <div className="card-body">
@@ -103,14 +130,19 @@ function Dashboard() {
                       : "Proceed to Vote"}
                 </button>
 
-
                 <small className="text-muted d-block mt-2">
-                  Voting can only be done once.
+                  Voting is allowed only when opened by the Electoral Committee.
                 </small>
               </div>
             </div>
           </div>
 
+        </div>
+
+        {/* ================= NOTICE ================= */}
+        <div className="alert alert-info mt-4 text-center">
+          🗳️ This election is conducted under the supervision of the
+          Students’ Union Government Electoral Committee.
         </div>
       </div>
     </div>
