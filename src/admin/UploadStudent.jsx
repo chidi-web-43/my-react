@@ -1,10 +1,15 @@
 import { useState } from "react";
 
 function UploadStudent() {
+  const electionYear =
+    localStorage.getItem("electionYear") || new Date().getFullYear().toString();
+
+  const storageKey = `students_${electionYear}`;
+
   const [matric, setMatric] = useState("");
   const [name, setName] = useState("");
   const [students, setStudents] = useState(
-    JSON.parse(localStorage.getItem("students")) || []
+    JSON.parse(localStorage.getItem(storageKey)) || []
   );
 
   const addStudent = () => {
@@ -20,29 +25,24 @@ function UploadStudent() {
 
     const exists = students.some((s) => s.matric === matric);
     if (exists) {
-      alert("Student already exists");
+      alert("Student already uploaded for this year");
       return;
     }
 
-    const newStudent = {
-      matric,
-      name,
-      password: "",
-      hasVoted: false,
-    };
-
-    const updated = [...students, newStudent];
+    const updated = [...students, { matric, name }];
     setStudents(updated);
-    localStorage.setItem("students", JSON.stringify(updated));
+    localStorage.setItem(storageKey, JSON.stringify(updated));
 
     setMatric("");
     setName("");
-    alert("Student uploaded successfully");
+    alert("✅ Student uploaded successfully");
   };
 
   return (
     <div className="container mt-5">
-      <h3 className="fw-bold mb-4">Upload Students</h3>
+      <h3 className="fw-bold mb-4">
+        Upload Students – {electionYear}
+      </h3>
 
       <div className="card p-4 shadow-sm">
         <input

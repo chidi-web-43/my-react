@@ -1,4 +1,3 @@
-// src/admin/AdminDashboard.jsx
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Footer from "../components/Footer";
@@ -6,109 +5,126 @@ import Footer from "../components/Footer";
 function AdminDashboard() {
   const navigate = useNavigate();
 
-  // ✅ CURRENT ELECTION YEAR
-  const [electionYear, setElectionYear] = useState(
-    localStorage.getItem("electionYear") || new Date().getFullYear().toString()
-  );
+  const electionYear =
+    localStorage.getItem("electionYear") ||
+    new Date().getFullYear().toString();
 
-  // ✅ VOTING STATUS PER YEAR
   const [votingStatus, setVotingStatus] = useState(
     localStorage.getItem(`votingStatus_${electionYear}`) || "closed"
   );
 
-  useEffect(() => {
-    localStorage.setItem("electionYear", electionYear);
-
-    const status =
-      localStorage.getItem(`votingStatus_${electionYear}`) || "closed";
-    setVotingStatus(status);
-  }, [electionYear]);
-
+  /* ================= LOGOUT ================= */
   const handleLogout = () => {
     localStorage.removeItem("adminAuth");
     navigate("/admin-login");
   };
 
+  /* ================= VOTING CONTROL ================= */
   const startVoting = () => {
     localStorage.setItem(`votingStatus_${electionYear}`, "open");
     setVotingStatus("open");
-    alert(`✅ Voting started for ${electionYear}`);
+    alert("✅ Voting has started");
   };
 
   const endVoting = () => {
     localStorage.setItem(`votingStatus_${electionYear}`, "closed");
     setVotingStatus("closed");
-    alert(`❌ Voting ended for ${electionYear}`);
+    alert("❌ Voting has ended");
   };
+
+  useEffect(() => {
+    if (!localStorage.getItem(`votingStatus_${electionYear}`)) {
+      localStorage.setItem(`votingStatus_${electionYear}`, "closed");
+    }
+  }, [electionYear]);
 
   return (
     <div style={{ minHeight: "100vh", background: "#f4f6f9" }}>
-      {/* TOP NAVBAR */}
+      {/* ================= NAVBAR ================= */}
       <nav className="navbar navbar-dark bg-primary px-4 sticky-top">
-        <span className="navbar-brand fw-bold">SUG Admin Dashboard</span>
+        <span className="navbar-brand fw-bold">
+          SUG Admin Dashboard – {electionYear}
+        </span>
         <button onClick={handleLogout} className="btn btn-light btn-sm">
           Logout
         </button>
       </nav>
 
       <div className="container py-5">
-
-        {/* ELECTION YEAR */}
+        {/* ================= WELCOME ================= */}
         <div className="card shadow-sm mb-4">
           <div className="card-body">
-            <h5 className="fw-bold">Election Year</h5>
-            <select
-              className="form-select mt-2"
-              value={electionYear}
-              onChange={(e) => setElectionYear(e.target.value)}
-            >
-              <option value="2024">2024</option>
-              <option value="2025">2025</option>
-              <option value="2026">2026</option>
-            </select>
+            <h4 className="fw-bold mb-1">Welcome, Administrator 👋</h4>
+            <p className="text-muted mb-0">
+              Manage all election processes for the {electionYear} academic
+              session.
+            </p>
           </div>
         </div>
 
-        {/* ACTION BUTTONS */}
+        {/* ================= ACTION CARDS ================= */}
         <div className="row">
+          {/* UPLOAD STUDENTS */}
           <div className="col-md-4 mb-4">
-            <button
-              className="btn btn-primary w-100"
-              onClick={() => navigate("/upload-student")}
-            >
-              Upload Students
-            </button>
+            <div className="card shadow-sm text-center h-100 p-3">
+              <h5 className="fw-bold">Upload Students</h5>
+              <p className="text-muted">
+                Register eligible voters for this election.
+              </p>
+              <button
+                className="btn btn-primary w-100"
+                onClick={() => navigate("/upload-student")}
+              >
+                Upload Students
+              </button>
+            </div>
           </div>
 
+          {/* MANAGE CANDIDATES */}
           <div className="col-md-4 mb-4">
-            <button
-              className="btn btn-primary w-100"
-              onClick={() => navigate("/admin/manage-candidates")}
-            >
-              Manage Candidates
-            </button>
+            <div className="card shadow-sm text-center h-100 p-3">
+              <h5 className="fw-bold">Manage Candidates</h5>
+              <p className="text-muted">
+                Add, edit, or remove election candidates.
+              </p>
+              <button
+                className="btn btn-primary w-100"
+                onClick={() => navigate("/admin/manage-candidates")}
+              >
+                Manage Candidates
+              </button>
+            </div>
           </div>
 
+          {/* RESULTS */}
           <div className="col-md-4 mb-4">
-            <button
-              className="btn btn-primary w-100"
-              onClick={() => navigate("/results")}
-            >
-              View Results
-            </button>
+            <div className="card shadow-sm text-center h-100 p-3">
+              <h5 className="fw-bold">Election Results</h5>
+              <p className="text-muted">
+                Monitor votes and declare winners.
+              </p>
+              <button
+                className="btn btn-dark w-100"
+                onClick={() => navigate("/admin/results")}
+              >
+                View Results
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* VOTING CONTROL */}
+        {/* ================= VOTING CONTROL ================= */}
         <div className="card shadow-sm mt-4">
           <div className="card-body text-center">
-            <h5 className="fw-bold">Voting Control</h5>
+            <h5 className="fw-bold mb-3">Voting Control Panel</h5>
 
-            <p className="fw-semibold">
-              Status:
+            <p className="fw-semibold mb-3">
+              Current Status:
               <span
                 className={`ms-2 ${
-                  votingStatus === "open" ? "text-success" : "text-danger"
+                  votingStatus === "open"
+                    ? "text-success"
+                    : "text-danger"
                 }`}
               >
                 {votingStatus.toUpperCase()}

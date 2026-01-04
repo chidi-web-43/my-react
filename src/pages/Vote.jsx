@@ -16,15 +16,29 @@ function Vote() {
   const [candidates, setCandidates] = useState([]);
   const [selectedCandidate, setSelectedCandidate] = useState("");
 
-  // ================= LOAD CANDIDATES =================
+  /* ================= LOAD CANDIDATES ================= */
   useEffect(() => {
     const storedCandidates =
       JSON.parse(localStorage.getItem(`candidates_${electionYear}`)) || [];
-
     setCandidates(storedCandidates);
   }, [electionYear]);
 
-  // ================= CHECK CONDITIONS =================
+  /* ================= CHECK ELIGIBLE STUDENT ================= */
+  useEffect(() => {
+    const students =
+      JSON.parse(localStorage.getItem(`students_${electionYear}`)) || [];
+
+    const eligible = students.some(
+      (s) => s.matric === matricNumber
+    );
+
+    if (!eligible) {
+      alert("❌ You are not eligible to vote. Your matric number was not uploaded.");
+      navigate("/dashboard");
+    }
+  }, [electionYear, matricNumber, navigate]);
+
+  /* ================= CHECK VOTING CONDITIONS ================= */
   useEffect(() => {
     if (votingStatus !== "open") {
       alert("Voting is currently closed.");
@@ -36,12 +50,12 @@ function Vote() {
     );
 
     if (voted === "true") {
-      alert("You have already voted.");
+      alert("You have already voted for this election year.");
       navigate("/dashboard");
     }
   }, [navigate, matricNumber, electionYear, votingStatus]);
 
-  // ================= SUBMIT VOTE =================
+  /* ================= SUBMIT VOTE ================= */
   const handleVote = () => {
     if (!selectedCandidate) {
       alert("Please select a candidate.");
@@ -52,7 +66,6 @@ function Vote() {
     const votes = JSON.parse(localStorage.getItem(votesKey)) || {};
 
     votes[selectedCandidate] = (votes[selectedCandidate] || 0) + 1;
-
     localStorage.setItem(votesKey, JSON.stringify(votes));
 
     localStorage.setItem(
@@ -60,13 +73,13 @@ function Vote() {
       "true"
     );
 
-    alert("Your vote has been submitted successfully.");
+    alert("✅ Your vote has been submitted successfully.");
     navigate("/dashboard");
   };
 
   return (
     <div style={{ minHeight: "100vh", background: "#f4f6f9" }}>
-      {/* ================= NAV ================= */}
+      {/* ================= NAVBAR ================= */}
       <nav className="navbar navbar-dark bg-success px-4">
         <span className="navbar-brand fw-bold">
           SUG Voting – {electionYear}
