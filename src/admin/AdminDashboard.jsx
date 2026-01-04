@@ -37,6 +37,14 @@ function AdminDashboard() {
       localStorage.setItem(`votingStatus_${electionYear}`, "closed");
     }
   }, [electionYear]);
+  useEffect(() => {
+  const year = new Date().getFullYear().toString();
+
+  if (!localStorage.getItem("electionYear")) {
+    localStorage.setItem("electionYear", year);
+  }
+}, []);
+
 
   return (
     <div style={{ minHeight: "100vh", background: "#f4f6f9" }}>

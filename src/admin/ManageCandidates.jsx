@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 
 function ManageCandidates() {
-  const electionYear = localStorage.getItem("electionYear");
+  const electionYear =
+  localStorage.getItem("electionYear") || new Date().getFullYear().toString();
+
 
   const [name, setName] = useState("");
   const [position, setPosition] = useState("");
