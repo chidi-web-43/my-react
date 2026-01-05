@@ -1,111 +1,128 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 function ManageCandidates() {
   const electionYear =
-  localStorage.getItem("electionYear") || new Date().getFullYear().toString();
-
+    localStorage.getItem("electionYear") ||
+    new Date().getFullYear().toString();
 
   const [name, setName] = useState("");
   const [position, setPosition] = useState("");
+  const [image, setImage] = useState("");
   const [candidates, setCandidates] = useState([]);
 
+  const storageKey = `candidates_${electionYear}`;
+
+  // ================= LOAD CANDIDATES =================
   useEffect(() => {
     const stored =
-      JSON.parse(localStorage.getItem(`candidates_${electionYear}`)) || [];
+      JSON.parse(localStorage.getItem(storageKey)) || [];
     setCandidates(stored);
-  }, [electionYear]);
+  }, [storageKey]);
 
-  const addCandidate = (e) => {
-    e.preventDefault();
-    if (!name || !position) return;
+  // ================= IMAGE HANDLER =================
+  const handleImage = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-    const updated = [
-      ...candidates,
-      { id: Date.now(), name, position }
-    ];
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImage(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
 
+  // ================= ADD CANDIDATE =================
+  const addCandidate = () => {
+    if (!name || !position || !image) {
+      alert("All fields including image are required");
+      return;
+    }
+
+    const newCandidate = {
+      id: Date.now().toString(),
+      name,
+      position,
+      image,
+    };
+
+    const updated = [...candidates, newCandidate];
     setCandidates(updated);
-    localStorage.setItem(
-      `candidates_${electionYear}`,
-      JSON.stringify(updated)
-    );
+    localStorage.setItem(storageKey, JSON.stringify(updated));
 
     setName("");
     setPosition("");
+    setImage("");
+
+    alert("Candidate added successfully");
   };
 
+  // ================= DELETE =================
   const deleteCandidate = (id) => {
-    const updated = candidates.filter(c => c.id !== id);
+    const updated = candidates.filter((c) => c.id !== id);
     setCandidates(updated);
-    localStorage.setItem(
-      `candidates_${electionYear}`,
-      JSON.stringify(updated)
-    );
+    localStorage.setItem(storageKey, JSON.stringify(updated));
   };
 
   return (
-    <div className="container py-4">
-      <h3 className="fw-bold">
+    <div className="container py-5">
+      <h3 className="fw-bold mb-4">
         Manage Candidates – {electionYear}
       </h3>
 
-      <form onSubmit={addCandidate} className="card p-3 mb-4">
+      {/* ADD FORM */}
+      <div className="card p-4 shadow-sm mb-4">
         <input
-          className="form-control mb-2"
+          className="form-control mb-3"
           placeholder="Candidate Name"
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
 
-        <select
-          className="form-select mb-2"
+        <input
+          className="form-control mb-3"
+          placeholder="Position (e.g. President)"
           value={position}
           onChange={(e) => setPosition(e.target.value)}
-        >
-          <option value="">Select Position</option>
-          <option>President</option>
-          <option>Vice President</option>
-          <option>Secretary</option>
-          <option>Treasurer</option>
-        </select>
+        />
 
-        <button className="btn btn-success">Add Candidate</button>
-      </form>
+        <input
+          type="file"
+          accept="image/*"
+          className="form-control mb-3"
+          onChange={handleImage}
+        />
 
-      <table className="table table-bordered">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Name</th>
-            <th>Position</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {candidates.map((c, i) => (
-            <tr key={c.id}>
-              <td>{i + 1}</td>
-              <td>{c.name}</td>
-              <td>{c.position}</td>
-              <td>
+        <button className="btn btn-primary w-100" onClick={addCandidate}>
+          Add Candidate
+        </button>
+      </div>
+
+      {/* CANDIDATE LIST */}
+      <div className="row">
+        {candidates.map((c) => (
+          <div className="col-md-4 mb-4" key={c.id}>
+            <div className="card shadow-sm text-center">
+              <img
+                src={c.image}
+                alt={c.name}
+                className="card-img-top"
+                style={{ height: "220px", objectFit: "cover" }}
+              />
+              <div className="card-body">
+                <h5 className="fw-bold">{c.name}</h5>
+                <p className="text-muted">{c.position}</p>
+
                 <button
-                  className="btn btn-danger btn-sm"
+                  className="btn btn-danger btn-sm w-100"
                   onClick={() => deleteCandidate(c.id)}
                 >
                   Delete
                 </button>
-              </td>
-            </tr>
-          ))}
-          {candidates.length === 0 && (
-            <tr>
-              <td colSpan="4" className="text-center text-muted">
-                No candidates yet
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

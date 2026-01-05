@@ -106,22 +106,38 @@ function Vote() {
                 {candidates.map((candidate) => (
                   <div
                     key={candidate.id}
-                    className="form-check border rounded p-3 mb-3"
+                    className="border rounded p-3 mb-3 d-flex align-items-center"
                   >
                     <input
-                      className="form-check-input"
+                      className="form-check-input me-3"
                       type="radio"
                       name="candidate"
                       value={candidate.id}
                       onChange={() => setSelectedCandidate(candidate.id)}
                     />
-                    <label className="form-check-label ms-2">
+
+                    {/* ===== CANDIDATE IMAGE ===== */}
+                    <img
+                      src={candidate.image}
+                      alt={candidate.name}
+                      width="80"
+                      height="80"
+                      className="me-3"
+                      style={{
+                        objectFit: "cover",
+                        borderRadius: "50%",
+                        border: "2px solid #198754",
+                      }}
+                    />
+
+                    {/* ===== DETAILS ===== */}
+                    <div>
                       <strong>{candidate.name}</strong>
                       <br />
                       <small className="text-muted">
                         Position: {candidate.position}
                       </small>
-                    </label>
+                    </div>
                   </div>
                 ))}
 
