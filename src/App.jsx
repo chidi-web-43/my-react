@@ -7,6 +7,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Vote from "./pages/Vote";
 import Results from "./pages/Results";
+import Receipt from "./pages/Receipt";
 
 /* ADMIN */
 import AdminLogin from "./admin/AdminLogin";
@@ -47,6 +48,15 @@ function App() {
           element={
             <ProtectedRoute type="student">
               <Vote />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/receipt"
+          element={
+            <ProtectedRoute type="student">
+              <Receipt />
             </ProtectedRoute>
           }
         />

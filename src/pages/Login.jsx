@@ -6,7 +6,8 @@ function Login() {
   const navigate = useNavigate();
 
   const electionYear =
-    localStorage.getItem("electionYear") || new Date().getFullYear().toString();
+    localStorage.getItem("electionYear") ||
+    new Date().getFullYear().toString();
 
   const students =
     JSON.parse(localStorage.getItem(`students_${electionYear}`)) || [];
@@ -16,11 +17,27 @@ function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
 
+  /* ================= STRONG PASSWORD CHECK ================= */
+  const isStrongPassword = (pwd) => {
+    const strongRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?#&])[A-Za-z\d@$!%*?#&]{8,}$/;
+    return strongRegex.test(pwd);
+  };
+
+  /* ================= LOGIN ================= */
   const handleLogin = (e) => {
     e.preventDefault();
+    setError("");
 
     if (!matricNumber || !password) {
       setError("Please enter your Matric Number and Password.");
+      return;
+    }
+
+    if (!isStrongPassword(password)) {
+      setError(
+        "Password must be at least 8 characters and include uppercase, lowercase, number, and special character."
+      );
       return;
     }
 
@@ -35,6 +52,13 @@ function Login() {
       return;
     }
 
+    /* CHECK PASSWORD MATCH */
+    if (student.password !== password) {
+      setError("❌ Incorrect password.");
+      return;
+    }
+
+    /* LOGIN SUCCESS */
     localStorage.setItem("studentAuth", "true");
     localStorage.setItem("matricNumber", student.matric);
     localStorage.setItem("studentName", student.name);
@@ -43,7 +67,8 @@ function Login() {
   };
 
   return (
-    <div className="d-flex align-items-center justify-content-center"
+    <div
+      className="d-flex align-items-center justify-content-center"
       style={{ minHeight: "100vh", background: "#eef2f6" }}
     >
       <div className="card shadow-lg border-0" style={{ width: "460px" }}>
@@ -74,7 +99,7 @@ function Login() {
               }
             />
 
-            <div className="input-group mb-4">
+            <div className="input-group mb-2">
               <input
                 type={showPassword ? "text" : "password"}
                 className="form-control form-control-lg"
@@ -87,9 +112,17 @@ function Login() {
                 style={{ cursor: "pointer" }}
                 onClick={() => setShowPassword(!showPassword)}
               >
-                <i className={`bi ${showPassword ? "bi-eye-slash" : "bi-eye"}`}></i>
+                <i
+                  className={`bi ${
+                    showPassword ? "bi-eye-slash" : "bi-eye"
+                  }`}
+                ></i>
               </span>
             </div>
+
+            <small className="text-muted d-block mb-4">
+              Password must contain uppercase, lowercase, number & special character.
+            </small>
 
             <button className="btn btn-success btn-lg w-100">
               Login

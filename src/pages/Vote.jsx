@@ -8,37 +8,41 @@ function Vote() {
   const studentName = localStorage.getItem("studentName");
 
   const electionYear =
-    localStorage.getItem("electionYear") || new Date().getFullYear().toString();
+    localStorage.getItem("electionYear") ||
+    new Date().getFullYear().toString();
 
   const votingStatus =
     localStorage.getItem(`votingStatus_${electionYear}`) || "closed";
 
   const [candidates, setCandidates] = useState([]);
-  const [selectedCandidate, setSelectedCandidate] = useState("");
+  const [positions, setPositions] = useState([]);
+  const [selectedVotes, setSelectedVotes] = useState({});
 
   /* ================= LOAD CANDIDATES ================= */
   useEffect(() => {
-    const storedCandidates =
+    const stored =
       JSON.parse(localStorage.getItem(`candidates_${electionYear}`)) || [];
-    setCandidates(storedCandidates);
+
+    setCandidates(stored);
+
+    const uniquePositions = [...new Set(stored.map(c => c.position))];
+    setPositions(uniquePositions);
   }, [electionYear]);
 
-  /* ================= CHECK ELIGIBLE STUDENT ================= */
+  /* ================= CHECK ELIGIBLE ================= */
   useEffect(() => {
     const students =
       JSON.parse(localStorage.getItem(`students_${electionYear}`)) || [];
 
-    const eligible = students.some(
-      (s) => s.matric === matricNumber
-    );
+    const eligible = students.some(s => s.matric === matricNumber);
 
     if (!eligible) {
-      alert("❌ You are not eligible to vote. Your matric number was not uploaded.");
+      alert("❌ You are not eligible to vote.");
       navigate("/dashboard");
     }
   }, [electionYear, matricNumber, navigate]);
 
-  /* ================= CHECK VOTING CONDITIONS ================= */
+  /* ================= CHECK STATUS ================= */
   useEffect(() => {
     if (votingStatus !== "open") {
       alert("Voting is currently closed.");
@@ -50,109 +54,100 @@ function Vote() {
     );
 
     if (voted === "true") {
-      alert("You have already voted for this election year.");
+      alert("You have already voted.");
       navigate("/dashboard");
     }
   }, [navigate, matricNumber, electionYear, votingStatus]);
 
-  /* ================= SUBMIT VOTE ================= */
-  const handleVote = () => {
-    if (!selectedCandidate) {
-      alert("Please select a candidate.");
+  const handleSelect = (position, candidateId) => {
+    setSelectedVotes({ ...selectedVotes, [position]: candidateId });
+  };
+
+  /* ================= SUBMIT ================= */
+  const handleSubmitVotes = () => {
+    if (Object.keys(selectedVotes).length !== positions.length) {
+      alert("⚠️ Please vote for all positions.");
       return;
     }
 
     const votesKey = `votes_${electionYear}`;
     const votes = JSON.parse(localStorage.getItem(votesKey)) || {};
 
-    votes[selectedCandidate] = (votes[selectedCandidate] || 0) + 1;
+    Object.values(selectedVotes).forEach(id => {
+      votes[id] = (votes[id] || 0) + 1;
+    });
+
     localStorage.setItem(votesKey, JSON.stringify(votes));
+    localStorage.setItem(`voted_${electionYear}_${matricNumber}`, "true");
+
+    /* SAVE RECEIPT */
+    const receipt = {
+      electionYear,
+      matricNumber,
+      votes: selectedVotes,
+      time: new Date().toLocaleString(),
+    };
 
     localStorage.setItem(
-      `voted_${electionYear}_${matricNumber}`,
-      "true"
+      `receipt_${electionYear}_${matricNumber}`,
+      JSON.stringify(receipt)
     );
 
-    alert("✅ Your vote has been submitted successfully.");
-    navigate("/dashboard");
+    navigate("/receipt");
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#f4f6f9" }}>
-      {/* ================= NAVBAR ================= */}
-      <nav className="navbar navbar-dark bg-success px-4">
-        <span className="navbar-brand fw-bold">
-          SUG Voting – {electionYear}
-        </span>
-      </nav>
+    <div className="container py-5">
+      <h4 className="fw-bold mb-3">
+        SUG Voting – {electionYear}
+      </h4>
 
-      <div className="container py-5">
-        <div className="card shadow-sm">
-          <div className="card-body">
-            <h4 className="fw-bold mb-2">Cast Your Vote</h4>
-            <p className="text-muted">
-              Student: <strong>{studentName}</strong> | Matric:{" "}
-              <strong>{matricNumber}</strong>
-            </p>
+      <p className="text-muted">
+        {studentName} ({matricNumber})
+      </p>
 
-            <hr />
+      {positions.map(position => (
+        <div key={position} className="mb-4">
+          <h5 className="fw-bold text-success">{position}</h5>
 
-            {candidates.length === 0 ? (
-              <p className="text-danger text-center">
-                No candidates available for this election year.
-              </p>
-            ) : (
-              <form>
-                {candidates.map((candidate) => (
-                  <div
-                    key={candidate.id}
-                    className="border rounded p-3 mb-3 d-flex align-items-center"
-                  >
-                    <input
-                      className="form-check-input me-3"
-                      type="radio"
-                      name="candidate"
-                      value={candidate.id}
-                      onChange={() => setSelectedCandidate(candidate.id)}
-                    />
+          {candidates
+            .filter(c => c.position === position)
+            .map(candidate => (
+              <div
+                key={candidate.id}
+                className="border rounded p-3 mb-2 d-flex align-items-center"
+              >
+                <input
+                  type="radio"
+                  className="form-check-input me-3"
+                  name={position}
+                  checked={selectedVotes[position] === candidate.id}
+                  onChange={() =>
+                    handleSelect(position, candidate.id)
+                  }
+                />
 
-                    {/* ===== CANDIDATE IMAGE ===== */}
-                    <img
-                      src={candidate.image}
-                      alt={candidate.name}
-                      width="80"
-                      height="80"
-                      className="me-3"
-                      style={{
-                        objectFit: "cover",
-                        borderRadius: "50%",
-                        border: "2px solid #198754",
-                      }}
-                    />
+                <img
+                  src={candidate.image}
+                  alt={candidate.name}
+                  width="70"
+                  height="70"
+                  className="me-3 rounded-circle"
+                  style={{ objectFit: "cover" }}
+                />
 
-                    {/* ===== DETAILS ===== */}
-                    <div>
-                      <strong>{candidate.name}</strong>
-                      <br />
-                      <small className="text-muted">
-                        Position: {candidate.position}
-                      </small>
-                    </div>
-                  </div>
-                ))}
-
-                <button
-                  type="button"
-                  className="btn btn-success w-100 mt-3"
-                  onClick={handleVote}
-                >
-                  Submit Vote
-                </button>
-              </form>
-            )}
-          </div>
+                <strong>{candidate.name}</strong>
+              </div>
+            ))}
         </div>
-      </div>
+      ))}
+
+      <button
+        className="btn btn-success w-100"
+        onClick={handleSubmitVotes}
+      >
+        Submit All Votes
+      </button>
     </div>
   );
 }

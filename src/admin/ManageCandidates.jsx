@@ -5,6 +5,9 @@ function ManageCandidates() {
     localStorage.getItem("electionYear") ||
     new Date().getFullYear().toString();
 
+  const votingStatus =
+    localStorage.getItem(`votingStatus_${electionYear}`) || "closed";
+
   const [name, setName] = useState("");
   const [position, setPosition] = useState("");
   const [image, setImage] = useState("");
@@ -12,116 +15,82 @@ function ManageCandidates() {
 
   const storageKey = `candidates_${electionYear}`;
 
-  // ================= LOAD CANDIDATES =================
   useEffect(() => {
-    const stored =
-      JSON.parse(localStorage.getItem(storageKey)) || [];
+    const stored = JSON.parse(localStorage.getItem(storageKey)) || [];
     setCandidates(stored);
   }, [storageKey]);
 
-  // ================= IMAGE HANDLER =================
   const handleImage = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setImage(reader.result);
-    };
+    reader.onloadend = () => setImage(reader.result);
     reader.readAsDataURL(file);
   };
 
-  // ================= ADD CANDIDATE =================
   const addCandidate = () => {
     if (!name || !position || !image) {
-      alert("All fields including image are required");
+      alert("All fields required");
       return;
     }
 
-    const newCandidate = {
-      id: Date.now().toString(),
-      name,
-      position,
-      image,
-    };
+    const updated = [
+      ...candidates,
+      { id: Date.now().toString(), name, position, image },
+    ];
 
-    const updated = [...candidates, newCandidate];
     setCandidates(updated);
     localStorage.setItem(storageKey, JSON.stringify(updated));
 
     setName("");
     setPosition("");
     setImage("");
-
-    alert("Candidate added successfully");
-  };
-
-  // ================= DELETE =================
-  const deleteCandidate = (id) => {
-    const updated = candidates.filter((c) => c.id !== id);
-    setCandidates(updated);
-    localStorage.setItem(storageKey, JSON.stringify(updated));
   };
 
   return (
     <div className="container py-5">
-      <h3 className="fw-bold mb-4">
+      <h3 className="fw-bold">
         Manage Candidates – {electionYear}
       </h3>
 
-      {/* ADD FORM */}
-      <div className="card p-4 shadow-sm mb-4">
+      {votingStatus === "open" && (
+        <div className="alert alert-warning mt-3">
+          Candidates are locked because voting has started.
+        </div>
+      )}
+
+      <div className="card p-4 mt-3">
         <input
           className="form-control mb-3"
           placeholder="Candidate Name"
           value={name}
+          disabled={votingStatus === "open"}
           onChange={(e) => setName(e.target.value)}
         />
 
         <input
           className="form-control mb-3"
-          placeholder="Position (e.g. President)"
+          placeholder="Position"
           value={position}
+          disabled={votingStatus === "open"}
           onChange={(e) => setPosition(e.target.value)}
         />
 
         <input
           type="file"
-          accept="image/*"
           className="form-control mb-3"
+          disabled={votingStatus === "open"}
           onChange={handleImage}
         />
 
-        <button className="btn btn-primary w-100" onClick={addCandidate}>
+        <button
+          className="btn btn-primary w-100"
+          disabled={votingStatus === "open"}
+          onClick={addCandidate}
+        >
           Add Candidate
         </button>
-      </div>
-
-      {/* CANDIDATE LIST */}
-      <div className="row">
-        {candidates.map((c) => (
-          <div className="col-md-4 mb-4" key={c.id}>
-            <div className="card shadow-sm text-center">
-              <img
-                src={c.image}
-                alt={c.name}
-                className="card-img-top"
-                style={{ height: "220px", objectFit: "cover" }}
-              />
-              <div className="card-body">
-                <h5 className="fw-bold">{c.name}</h5>
-                <p className="text-muted">{c.position}</p>
-
-                <button
-                  className="btn btn-danger btn-sm w-100"
-                  onClick={() => deleteCandidate(c.id)}
-                >
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        ))}
       </div>
     </div>
   );
