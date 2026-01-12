@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { isElectionLocked } from "../utils/ElectionLock";
 
 function UploadStudent() {
   const electionYear =
@@ -6,6 +7,9 @@ function UploadStudent() {
     new Date().getFullYear().toString();
 
   const storageKey = `students_${electionYear}`;
+
+  const votingStatus =
+    localStorage.getItem(`votingStatus_${electionYear}`) || "closed";
 
   const [students, setStudents] = useState([]);
   const [name, setName] = useState("");
@@ -29,6 +33,11 @@ function UploadStudent() {
 
   /* ================= ADD STUDENT ================= */
   const addStudent = () => {
+    if (votingStatus === "open") {
+      alert("❌ Voting has started. You cannot upload students now.");
+      return;
+    }
+
     if (!name || !matric || !password) {
       alert("All fields are required");
       return;
@@ -74,6 +83,11 @@ function UploadStudent() {
 
   /* ================= DELETE STUDENT ================= */
   const deleteStudent = (matric) => {
+    if (votingStatus === "open") {
+      alert("❌ Voting has started. You cannot modify students.");
+      return;
+    }
+
     const updated = students.filter(
       (s) => s.matric !== matric
     );
@@ -83,9 +97,16 @@ function UploadStudent() {
 
   return (
     <div className="container py-5">
-      <h3 className="fw-bold mb-4">
+      <h3 className="fw-bold mb-3">
         Upload Students – {electionYear}
       </h3>
+
+      {/* WARNING WHEN VOTING IS OPEN */}
+      {votingStatus === "open" && (
+        <div className="alert alert-danger text-center">
+          🚫 Voting has already started. Student upload is locked.
+        </div>
+      )}
 
       {/* ADD STUDENT FORM */}
       <div className="card shadow-sm p-4 mb-4">
@@ -93,6 +114,7 @@ function UploadStudent() {
           className="form-control mb-3"
           placeholder="Student Full Name"
           value={name}
+          disabled={votingStatus === "open"}
           onChange={(e) => setName(e.target.value)}
         />
 
@@ -100,18 +122,20 @@ function UploadStudent() {
           className="form-control mb-3"
           placeholder="Matric Number"
           value={matric}
+          disabled={votingStatus === "open"}
           onChange={(e) =>
             setMatric(e.target.value.replace(/\D/g, ""))
           }
         />
 
-        {/* PASSWORD FIELD WITH TOGGLE */}
+        {/* PASSWORD WITH TOGGLE */}
         <div className="input-group mb-2">
           <input
             type={showPassword ? "text" : "password"}
             className="form-control"
             placeholder="Strong Password"
             value={password}
+            disabled={votingStatus === "open"}
             onChange={(e) => setPassword(e.target.value)}
           />
           <span
@@ -128,14 +152,15 @@ function UploadStudent() {
         </div>
 
         <small className="text-muted d-block mb-3">
-          Password must contain uppercase, lowercase, number & special character.
+          Password must include uppercase, lowercase, number & symbol.
         </small>
 
         <button
           className="btn btn-primary w-100"
+          disabled={votingStatus === "open"}
           onClick={addStudent}
         >
-          Add Student
+          Upload Student
         </button>
       </div>
 
@@ -167,6 +192,7 @@ function UploadStudent() {
                     <td>
                       <button
                         className="btn btn-danger btn-sm"
+                        disabled={votingStatus === "open"}
                         onClick={() => deleteStudent(s.matric)}
                       >
                         Remove

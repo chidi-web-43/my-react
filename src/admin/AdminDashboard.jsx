@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Footer from "../components/Footer";
+import { isElectionLocked } from "../utils/ElectionLock";
 
 function AdminDashboard() {
   const navigate = useNavigate();
@@ -38,12 +39,14 @@ function AdminDashboard() {
     }
   }, [electionYear]);
   useEffect(() => {
-  const year = new Date().getFullYear().toString();
+    const year = new Date().getFullYear().toString();
 
-  if (!localStorage.getItem("electionYear")) {
-    localStorage.setItem("electionYear", year);
-  }
-}, []);
+    if (!localStorage.getItem("electionYear")) {
+      localStorage.setItem("electionYear", year);
+    }
+  }, []);
+
+  const locked = isElectionLocked(electionYear);
 
 
   return (
@@ -129,11 +132,10 @@ function AdminDashboard() {
             <p className="fw-semibold mb-3">
               Current Status:
               <span
-                className={`ms-2 ${
-                  votingStatus === "open"
+                className={`ms-2 ${votingStatus === "open"
                     ? "text-success"
                     : "text-danger"
-                }`}
+                  }`}
               >
                 {votingStatus.toUpperCase()}
               </span>
