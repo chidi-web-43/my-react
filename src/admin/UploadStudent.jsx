@@ -16,6 +16,7 @@ function UploadStudent() {
   const [matric, setMatric] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [searchMatric, setSearchMatric] = useState("");
 
   /* ================= LOAD STUDENTS ================= */
   useEffect(() => {
@@ -95,13 +96,18 @@ function UploadStudent() {
     localStorage.setItem(storageKey, JSON.stringify(updated));
   };
 
+  /* ================= FILTER STUDENTS ================= */
+  const filteredStudents = students.filter((s) =>
+    s.matric.includes(searchMatric)
+  );
+
   return (
     <div className="container py-5">
       <h3 className="fw-bold mb-3">
         Upload Students – {electionYear}
       </h3>
 
-      {/* WARNING WHEN VOTING IS OPEN */}
+      {/* WARNING */}
       {votingStatus === "open" && (
         <div className="alert alert-danger text-center">
           🚫 Voting has already started. Student upload is locked.
@@ -128,7 +134,7 @@ function UploadStudent() {
           }
         />
 
-        {/* PASSWORD WITH TOGGLE */}
+        {/* PASSWORD FIELD */}
         <div className="input-group mb-2">
           <input
             type={showPassword ? "text" : "password"}
@@ -168,25 +174,37 @@ function UploadStudent() {
       <div className="card shadow-sm">
         <div className="card-body">
           <h5 className="fw-bold mb-3">
-            Uploaded Students
+            Uploaded Students ({students.length})
           </h5>
 
-          {students.length === 0 ? (
-            <p className="text-muted">
-              No students uploaded yet.
+          {/* SEARCH */}
+          <input
+            className="form-control mb-3"
+            placeholder="🔍 Search by Matric Number"
+            value={searchMatric}
+            onChange={(e) =>
+              setSearchMatric(e.target.value.replace(/\D/g, ""))
+            }
+          />
+
+          {filteredStudents.length === 0 ? (
+            <p className="text-muted text-center">
+              No student found.
             </p>
           ) : (
-            <table className="table table-bordered">
-              <thead>
+            <table className="table table-bordered table-striped">
+              <thead className="table-light">
                 <tr>
+                  <th>#</th>
                   <th>Name</th>
                   <th>Matric</th>
                   <th>Action</th>
                 </tr>
               </thead>
               <tbody>
-                {students.map((s) => (
+                {filteredStudents.map((s, index) => (
                   <tr key={s.matric}>
+                    <td>{index + 1}</td>
                     <td>{s.name}</td>
                     <td>{s.matric}</td>
                     <td>
