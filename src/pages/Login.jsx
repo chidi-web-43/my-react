@@ -9,61 +9,158 @@ function Login() {
     localStorage.getItem("electionYear") ||
     new Date().getFullYear().toString();
 
-  const students =
-    JSON.parse(localStorage.getItem(`students_${electionYear}`)) || [];
+  const studentsKey = `students_${electionYear}`;
 
+  const [step, setStep] = useState(1); // 1 = matric, 2 = otp
   const [matricNumber, setMatricNumber] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [student, setStudent] = useState(null);
   const [error, setError] = useState("");
 
-  /* ================= STRONG PASSWORD CHECK ================= */
-  const isStrongPassword = (pwd) => {
-    const strongRegex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?#&])[A-Za-z\d@$!%*?#&]{8,}$/;
-    return strongRegex.test(pwd);
-  };
+  /* ================= GENERATE OTP ================= */
+  const generateOTP = () =>
+    Math.floor(100000 + Math.random() * 900000).toString();
 
-  /* ================= LOGIN ================= */
-  const handleLogin = (e) => {
-    e.preventDefault();
+  /* ================= SEND OTP ================= */
+  const sendOtp = () => {
     setError("");
 
-    if (!matricNumber || !password) {
-      setError("Please enter your Matric Number and Password.");
+    if (!matricNumber) {
+      setError("Please enter your Matric Number.");
       return;
     }
 
-    if (!isStrongPassword(password)) {
-      setError(
-        "Password must be at least 8 characters and include uppercase, lowercase, number, and special character."
-      );
-      return;
-    }
+    const students =
+      JSON.parse(localStorage.getItem(studentsKey)) || [];
 
-    const student = students.find(
+    const found = students.find(
       (s) => s.matric === matricNumber
     );
 
-    if (!student) {
+    if (!found) {
       setError(
         "❌ You are NOT eligible for this election. Contact the Electoral Committee."
       );
       return;
     }
 
-    /* CHECK PASSWORD MATCH */
-    if (student.password !== password) {
-      setError("❌ Incorrect password.");
+    /* ❌ BLOCK IF ALREADY VOTED */
+    if (found.hasVoted) {
+      setError("❌ You have already voted. OTP access denied.");
       return;
     }
 
+    const otpCode = generateOTP();
+    const expiry = Date.now() + 5 * 60 * 1000; // 5 minutes
+
+    /* SAVE OTP INTO STUDENT RECORD */
+    const updatedStudents = students.map((s) =>
+      s.matric === matricNumber
+        ? { ...s, otp: otpCode, otpExpiry: expiry }
+        : s
+    );
+
+    localStorage.setItem(
+      studentsKey,
+      JSON.stringify(updatedStudents)
+    );
+
+    setStudent(found);
+    setStep(2);
+
+    /* 📧 SIMULATED EMAIL */
+    alert(
+      `📧 OTP SENT TO ${found.email}\n\nOTP: ${otpCode}\nValid for 5 minutes`
+    );
+  };
+
+  /* ================= VERIFY OTP ================= */
+  const verifyOtp = () => {
+    setError("");
+
+    if (!otp) {
+      setError("Please enter the OTP.");
+      return;
+    }
+
+    const students =
+      JSON.parse(localStorage.getItem(studentsKey)) || [];
+
+    const found = students.find(
+      (s) => s.matric === matricNumber
+    );
+
+    if (!found) {
+      setError("Invalid student record.");
+      return;
+    }
+
+    if (found.hasVoted) {
+      setError("❌ Voting already completed.");
+      return;
+    }
+
+    if (!found.otp || Date.now() > found.otpExpiry) {
+      setError("❌ OTP expired. Please resend OTP.");
+      return;
+    }
+
+    if (otp !== found.otp) {
+      setError("❌ Incorrect OTP.");
+      return;
+    }
+
+    /* CLEAR OTP AFTER SUCCESSFUL LOGIN */
+    const updatedStudents = students.map((s) =>
+      s.matric === matricNumber
+        ? { ...s, otp: null, otpExpiry: null }
+        : s
+    );
+
+    localStorage.setItem(
+      studentsKey,
+      JSON.stringify(updatedStudents)
+    );
+
     /* LOGIN SUCCESS */
     localStorage.setItem("studentAuth", "true");
-    localStorage.setItem("matricNumber", student.matric);
-    localStorage.setItem("studentName", student.name);
+    localStorage.setItem("matricNumber", found.matric);
+    localStorage.setItem("studentName", found.name);
 
     navigate("/dashboard");
+  };
+
+  /* ================= RESEND OTP ================= */
+  const resendOtp = () => {
+    const students =
+      JSON.parse(localStorage.getItem(studentsKey)) || [];
+
+    const found = students.find(
+      (s) => s.matric === matricNumber
+    );
+
+    if (!found || found.hasVoted) {
+      setError("❌ OTP regeneration not allowed.");
+      return;
+    }
+
+    const otpCode = generateOTP();
+    const expiry = Date.now() + 5 * 60 * 1000;
+
+    const updatedStudents = students.map((s) =>
+      s.matric === matricNumber
+        ? { ...s, otp: otpCode, otpExpiry: expiry }
+        : s
+    );
+
+    localStorage.setItem(
+      studentsKey,
+      JSON.stringify(updatedStudents)
+    );
+
+    alert(
+      `📧 NEW OTP SENT TO ${found.email}\n\nOTP: ${otpCode}\nValid for 5 minutes`
+    );
   };
 
   return (
@@ -89,45 +186,58 @@ function Login() {
             </div>
           )}
 
-          <form onSubmit={handleLogin}>
-            <input
-              className="form-control form-control-lg mb-3"
-              placeholder="Matric Number"
-              value={matricNumber}
-              onChange={(e) =>
-                setMatricNumber(e.target.value.replace(/\D/g, ""))
-              }
-            />
-
-            <div className="input-group mb-2">
+          {/* STEP 1 – MATRIC */}
+          {step === 1 && (
+            <>
               <input
-                type={showPassword ? "text" : "password"}
-                className="form-control form-control-lg"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                className="form-control form-control-lg mb-4"
+                placeholder="Matric Number"
+                value={matricNumber}
+                onChange={(e) =>
+                  setMatricNumber(e.target.value.replace(/\D/g, ""))
+                }
               />
-              <span
-                className="input-group-text"
-                style={{ cursor: "pointer" }}
-                onClick={() => setShowPassword(!showPassword)}
+
+              <button
+                className="btn btn-success btn-lg w-100"
+                onClick={sendOtp}
               >
-                <i
-                  className={`bi ${
-                    showPassword ? "bi-eye-slash" : "bi-eye"
-                  }`}
-                ></i>
-              </span>
-            </div>
+                Send OTP
+              </button>
+            </>
+          )}
 
-            <small className="text-muted d-block mb-4">
-              Password must contain uppercase, lowercase, number & special character.
-            </small>
+          {/* STEP 2 – OTP */}
+          {step === 2 && student && (
+            <>
+              <p className="text-muted text-center mb-3">
+                OTP sent to <strong>{student.email}</strong>
+              </p>
 
-            <button className="btn btn-success btn-lg w-100">
-              Login
-            </button>
-          </form>
+              <input
+                className="form-control form-control-lg mb-3"
+                placeholder="Enter OTP"
+                value={otp}
+                onChange={(e) =>
+                  setOtp(e.target.value.replace(/\D/g, ""))
+                }
+              />
+
+              <button
+                className="btn btn-success btn-lg w-100 mb-2"
+                onClick={verifyOtp}
+              >
+                Verify & Login
+              </button>
+
+              <button
+                className="btn btn-outline-secondary w-100"
+                onClick={resendOtp}
+              >
+                Resend OTP
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

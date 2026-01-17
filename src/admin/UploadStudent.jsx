@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { isElectionLocked } from "../utils/ElectionLock";
 
 function UploadStudent() {
   const electionYear =
@@ -7,15 +6,13 @@ function UploadStudent() {
     new Date().getFullYear().toString();
 
   const storageKey = `students_${electionYear}`;
-
   const votingStatus =
     localStorage.getItem(`votingStatus_${electionYear}`) || "closed";
 
   const [students, setStudents] = useState([]);
   const [name, setName] = useState("");
   const [matric, setMatric] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
   const [searchMatric, setSearchMatric] = useState("");
 
   /* ================= LOAD STUDENTS ================= */
@@ -25,21 +22,14 @@ function UploadStudent() {
     setStudents(stored);
   }, [storageKey]);
 
-  /* ================= STRONG PASSWORD CHECK ================= */
-  const isStrongPassword = (pwd) => {
-    const regex =
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?#&])[A-Za-z\d@$!%*?#&]{8,}$/;
-    return regex.test(pwd);
-  };
-
   /* ================= ADD STUDENT ================= */
   const addStudent = () => {
     if (votingStatus === "open") {
-      alert("❌ Voting has started. You cannot upload students now.");
+      alert("❌ Voting has started. You cannot upload students.");
       return;
     }
 
-    if (!name || !matric || !password) {
+    if (!name || !matric || !email) {
       alert("All fields are required");
       return;
     }
@@ -49,37 +39,32 @@ function UploadStudent() {
       return;
     }
 
-    if (!isStrongPassword(password)) {
-      alert(
-        "Password must be at least 8 characters and include uppercase, lowercase, number, and special character."
-      );
+    if (!email.includes("@")) {
+      alert("Enter a valid email address");
       return;
     }
 
-    const exists = students.some(
-      (s) => s.matric === matric
-    );
-
-    if (exists) {
+    if (students.some((s) => s.matric === matric)) {
       alert("This matric number already exists");
       return;
     }
 
     const newStudent = {
-      matric,
       name,
-      password,
+      matric,
+      email,
+      hasVoted: false,
     };
 
     const updated = [...students, newStudent];
     setStudents(updated);
     localStorage.setItem(storageKey, JSON.stringify(updated));
 
+    alert("✅ Student uploaded successfully");
+
     setName("");
     setMatric("");
-    setPassword("");
-
-    alert("✅ Student added successfully");
+    setEmail("");
   };
 
   /* ================= DELETE STUDENT ================= */
@@ -96,7 +81,7 @@ function UploadStudent() {
     localStorage.setItem(storageKey, JSON.stringify(updated));
   };
 
-  /* ================= FILTER STUDENTS ================= */
+  /* ================= SEARCH FILTER ================= */
   const filteredStudents = students.filter((s) =>
     s.matric.includes(searchMatric)
   );
@@ -107,10 +92,9 @@ function UploadStudent() {
         Upload Students – {electionYear}
       </h3>
 
-      {/* WARNING */}
       {votingStatus === "open" && (
         <div className="alert alert-danger text-center">
-          🚫 Voting has already started. Student upload is locked.
+          🚫 Voting has started. Student upload is locked.
         </div>
       )}
 
@@ -134,32 +118,13 @@ function UploadStudent() {
           }
         />
 
-        {/* PASSWORD FIELD */}
-        <div className="input-group mb-2">
-          <input
-            type={showPassword ? "text" : "password"}
-            className="form-control"
-            placeholder="Strong Password"
-            value={password}
-            disabled={votingStatus === "open"}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-          <span
-            className="input-group-text"
-            style={{ cursor: "pointer" }}
-            onClick={() => setShowPassword(!showPassword)}
-          >
-            <i
-              className={`bi ${
-                showPassword ? "bi-eye-slash" : "bi-eye"
-              }`}
-            ></i>
-          </span>
-        </div>
-
-        <small className="text-muted d-block mb-3">
-          Password must include uppercase, lowercase, number & symbol.
-        </small>
+        <input
+          className="form-control mb-3"
+          placeholder="Student Email"
+          value={email}
+          disabled={votingStatus === "open"}
+          onChange={(e) => setEmail(e.target.value)}
+        />
 
         <button
           className="btn btn-primary w-100"
@@ -177,10 +142,9 @@ function UploadStudent() {
             Uploaded Students ({students.length})
           </h5>
 
-          {/* SEARCH */}
           <input
             className="form-control mb-3"
-            placeholder="🔍 Search by Matric Number"
+            placeholder="🔍 Search by Matric"
             value={searchMatric}
             onChange={(e) =>
               setSearchMatric(e.target.value.replace(/\D/g, ""))
@@ -189,15 +153,16 @@ function UploadStudent() {
 
           {filteredStudents.length === 0 ? (
             <p className="text-muted text-center">
-              No student found.
+              No students found.
             </p>
           ) : (
             <table className="table table-bordered table-striped">
-              <thead className="table-light">
+              <thead>
                 <tr>
                   <th>#</th>
                   <th>Name</th>
                   <th>Matric</th>
+                  <th>Email</th>
                   <th>Action</th>
                 </tr>
               </thead>
@@ -207,6 +172,7 @@ function UploadStudent() {
                     <td>{index + 1}</td>
                     <td>{s.name}</td>
                     <td>{s.matric}</td>
+                    <td>{s.email}</td>
                     <td>
                       <button
                         className="btn btn-danger btn-sm"

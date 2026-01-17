@@ -65,7 +65,7 @@ function AdminDashboard() {
         {/* ================= WELCOME ================= */}
         <div className="card shadow-sm mb-4">
           <div className="card-body">
-            <h4 className="fw-bold mb-1">Welcome, Administrator 👋</h4>
+            <h4 className="fw-bold mb-1">Welcome, Administrator</h4>
             <p className="text-muted mb-0">
               Manage all election processes for the {electionYear} academic
               session.

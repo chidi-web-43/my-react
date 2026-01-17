@@ -1,4 +1,3 @@
-
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
@@ -11,7 +10,8 @@ function Dashboard() {
 
   // ================= ELECTION DATA =================
   const electionYear =
-    localStorage.getItem("electionYear") || new Date().getFullYear().toString();
+    localStorage.getItem("electionYear") ||
+    new Date().getFullYear().toString();
 
   const votingStatus =
     localStorage.getItem(`votingStatus_${electionYear}`) || "closed";
@@ -23,6 +23,7 @@ function Dashboard() {
     const voted = localStorage.getItem(
       `voted_${electionYear}_${matricNumber}`
     );
+
     setHasVoted(voted === "true");
   }, [matricNumber, electionYear]);
 
@@ -52,7 +53,7 @@ function Dashboard() {
         <div className="card shadow-sm mb-4">
           <div className="card-body">
             <h4 className="fw-bold mb-1">
-              Welcome, {studentName} 👋
+              Welcome, {studentName}
             </h4>
             <p className="text-muted mb-0">
               Matric Number: <strong>{matricNumber}</strong>
@@ -80,7 +81,7 @@ function Dashboard() {
                 )}
 
                 <small className="text-muted">
-                  One vote per student per year.
+                  One student — one vote.
                 </small>
               </div>
             </div>
@@ -120,15 +121,21 @@ function Dashboard() {
                 <h5 className="fw-bold">Action</h5>
 
                 <button
-                  className="btn btn-success mt-3 w-100"
+                  className={`btn mt-3 w-100 ${
+                    hasVoted
+                      ? "btn-secondary"
+                      : votingStatus !== "open"
+                      ? "btn-danger"
+                      : "btn-success"
+                  }`}
                   disabled={hasVoted || votingStatus !== "open"}
                   onClick={() => navigate("/vote")}
                 >
                   {hasVoted
-                    ? "Already Voted"
+                    ? "✅ Already Voted"
                     : votingStatus !== "open"
-                      ? "Voting Closed"
-                      : "Proceed to Vote"}
+                    ? "🚫 Voting Closed"
+                    : "🗳️ Proceed to Vote"}
                 </button>
 
                 <small className="text-muted d-block mt-2">

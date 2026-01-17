@@ -29,47 +29,45 @@ function Vote() {
     setPositions(uniquePositions);
   }, [electionYear]);
 
-  /* ================= CHECK ELIGIBLE ================= */
+  /* ================= CHECK ELIGIBILITY ================= */
   useEffect(() => {
     const students =
       JSON.parse(localStorage.getItem(`students_${electionYear}`)) || [];
 
-    const eligible = students.some(s => s.matric === matricNumber);
+    const student = students.find(s => s.matric === matricNumber);
 
-    if (!eligible) {
+    if (!student) {
       alert("❌ You are not eligible to vote.");
+      navigate("/dashboard");
+      return;
+    }
+
+    if (student.hasVoted) {
+      alert("❌ You have already voted.");
       navigate("/dashboard");
     }
   }, [electionYear, matricNumber, navigate]);
 
-  /* ================= CHECK STATUS ================= */
+  /* ================= CHECK VOTING STATUS ================= */
   useEffect(() => {
     if (votingStatus !== "open") {
       alert("Voting is currently closed.");
       navigate("/dashboard");
     }
-
-    const voted = localStorage.getItem(
-      `voted_${electionYear}_${matricNumber}`
-    );
-
-    if (voted === "true") {
-      alert("You have already voted.");
-      navigate("/dashboard");
-    }
-  }, [navigate, matricNumber, electionYear, votingStatus]);
+  }, [navigate, votingStatus]);
 
   const handleSelect = (position, candidateId) => {
     setSelectedVotes({ ...selectedVotes, [position]: candidateId });
   };
 
-  /* ================= SUBMIT ================= */
+  /* ================= SUBMIT VOTES ================= */
   const handleSubmitVotes = () => {
     if (Object.keys(selectedVotes).length !== positions.length) {
       alert("⚠️ Please vote for all positions.");
       return;
     }
 
+    /* SAVE VOTES */
     const votesKey = `votes_${electionYear}`;
     const votes = JSON.parse(localStorage.getItem(votesKey)) || {};
 
@@ -78,7 +76,28 @@ function Vote() {
     });
 
     localStorage.setItem(votesKey, JSON.stringify(votes));
-    localStorage.setItem(`voted_${electionYear}_${matricNumber}`, "true");
+
+    /* ================= DISABLE OTP AFTER VOTING ================= */
+    const studentsKey = `students_${electionYear}`;
+    const students =
+      JSON.parse(localStorage.getItem(studentsKey)) || [];
+
+    const updatedStudents = students.map(s => {
+      if (s.matric === matricNumber) {
+        return {
+          ...s,
+          hasVoted: true,
+          otp: null,
+          otpExpiry: null,
+        };
+      }
+      return s;
+    });
+
+    localStorage.setItem(
+      studentsKey,
+      JSON.stringify(updatedStudents)
+    );
 
     /* SAVE RECEIPT */
     const receipt = {
@@ -93,6 +112,7 @@ function Vote() {
       JSON.stringify(receipt)
     );
 
+    alert("✅ Vote submitted successfully!");
     navigate("/receipt");
   };
 
