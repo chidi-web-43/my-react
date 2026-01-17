@@ -159,7 +159,7 @@ function Login() {
     );
 
     alert(
-      `📧 NEW OTP SENT TO ${found.email}\n\nOTP: ${otpCode}\nValid for 5 minutes`
+      `📧 NEW OTP SENT TO ${found.email}\n\nOTP: ${otpCode}\nValid for 60 seconds`
     );
   };
 
