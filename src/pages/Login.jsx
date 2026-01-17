@@ -51,8 +51,7 @@ function Login() {
     }
 
     const otpCode = generateOTP();
-    const expiry = Date.now() + 5 * 60 * 1000; // 5 minutes
-
+    const expiry = Date.now() + 1 * 60 * 1000; // 1 minute validity
     /* SAVE OTP INTO STUDENT RECORD */
     const updatedStudents = students.map((s) =>
       s.matric === matricNumber
@@ -70,7 +69,7 @@ function Login() {
 
     /* 📧 SIMULATED EMAIL */
     alert(
-      `📧 OTP SENT TO ${found.email}\n\nOTP: ${otpCode}\nValid for 5 minutes`
+      `📧 OTP SENT TO ${found.email}\n\nOTP: ${otpCode}\nValid for 60 seconds`
     );
   };
 
