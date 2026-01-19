@@ -9,12 +9,19 @@ function Home() {
     localStorage.getItem("electionYear") ||
     new Date().getFullYear().toString();
 
-  /* ================= HERO IMAGES ================= */
-  const heroImages = [
-    "https://images.pexels.com/photos/1550337/pexels-photo-1550337.jpeg",
-    "https://images.pexels.com/photos/5428836/pexels-photo-5428836.jpeg",
-    "https://images.pexels.com/photos/1550340/pexels-photo-1550340.jpeg",
-  ];
+ /* ================= HERO IMAGES ================= */
+const heroImages = [
+  // 🗳️ Voting images (6)
+  "https://images.pexels.com/photos/1550337/pexels-photo-1550337.jpeg",
+  "https://images.pexels.com/photos/1550340/pexels-photo-1550340.jpeg", 
+  "https://images.pexels.com/photos/3184357/pexels-photo-3184357.jpeg",
+  "https://images.pexels.com/photos/5428836/pexels-photo-5428836.jpeg",
+  "https://images.pexels.com/photos/3184325/pexels-photo-3184325.jpeg",
+  "https://images.pexels.com/photos/3184298/pexels-photo-3184298.jpeg", 
+  "https://images.pexels.com/photos/267885/pexels-photo-267885.jpeg", 
+  "https://images.pexels.com/photos/207691/pexels-photo-207691.jpeg"
+];
+
 
   /* ================= COUNTDOWN ================= */
   const [timeLeft, setTimeLeft] = useState("");
@@ -35,9 +42,10 @@ function Home() {
       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
       const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
       const minutes = Math.floor((diff / (1000 * 60)) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
 
       setTimeLeft(
-        `${days} days • ${hours} hrs • ${minutes} mins remaining`
+        `${days} days • ${hours} hrs • ${minutes} mins • ${seconds} seconds remaining`
       );
     }, 1000);
 
@@ -54,7 +62,7 @@ function Home() {
         active.nextElementSibling ||
         carousel.querySelector(".carousel-item:first-child");
       next.classList.add("active");
-    }, 6000);
+    }, 3000);
 
     return () => clearInterval(interval);
   }, []);
@@ -85,12 +93,12 @@ function Home() {
                     <div className="col-lg-8 text-white">
 
                       {/* BADGE */}
-                      <span className="badge bg-success mb-3 fs-6">
+                      <span className="badge bg-success mb-3 fs-6 fade-up delay-1">
                         🗳️ SUG ELECTION {electionYear}
                       </span>
 
                       {/* LOGO */}
-                      <div className="mb-3">
+                      <div className="mb-3 fade-up delay-2">
                         <img
                           src={logo}
                           alt="University Logo"
@@ -100,13 +108,15 @@ function Home() {
                       </div>
 
                       {/* HEADLINE */}
-                      <h1 className="fw-bold display-5 mb-3">
+                      <h1 className="fw-bold display-5 mb-3 fade-up delay-3">
                         Student Union Government Voting Portal
                       </h1>
 
-                      <p className="lead mb-4">
+                      {/* SUBTEXT */}
+                      <p className="lead mb-4 fade-up delay-4">
                         Secure • Transparent • One Student, One Vote
                       </p>
+
 
                       {/* COUNTDOWN */}
                       <div className="alert alert-warning fw-semibold w-75">
