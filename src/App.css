@@ -31,26 +31,38 @@ body, html {
   color: #20c997;
 }
 
-/* ================= HERO TEXT ANIMATION ================= */
+/* ================= HERO ANIMATION ================= */
 
+/* background slow zoom */
+.carousel-item {
+  animation: zoomEffect 10s ease-in-out infinite alternate;
+}
+
+@keyframes zoomEffect {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.08);
+  }
+}
+
+/* fade + slide animation */
 .fade-up {
   opacity: 0;
-  transform: translateY(40px);
-  animation: fadeUp 3.2s ease forwards;
+  transform: translateY(30px);
+  animation: fadeUp 1s ease forwards;
 }
 
 .fade-up.delay-1 {
   animation-delay: 0.3s;
 }
-
 .fade-up.delay-2 {
   animation-delay: 0.6s;
 }
-
 .fade-up.delay-3 {
   animation-delay: 0.9s;
 }
-
 .fade-up.delay-4 {
   animation-delay: 1.2s;
 }
@@ -61,4 +73,3 @@ body, html {
     transform: translateY(0);
   }
 }
-

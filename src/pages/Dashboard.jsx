@@ -17,15 +17,47 @@ function Dashboard() {
     localStorage.getItem(`votingStatus_${electionYear}`) || "closed";
 
   const [hasVoted, setHasVoted] = useState(false);
+  const [totalStudents, setTotalStudents] = useState(0);
+  const [votedCount, setVotedCount] = useState(0);
 
-  // ================= CHECK VOTE STATUS =================
-  useEffect(() => {
+  // ================= LOAD ALL DATA =================
+  const loadVotingData = () => {
+    // check this student
     const voted = localStorage.getItem(
       `voted_${electionYear}_${matricNumber}`
     );
 
     setHasVoted(voted === "true");
-  }, [matricNumber, electionYear]);
+
+    // turnout
+    const students =
+      JSON.parse(localStorage.getItem(`students_${electionYear}`)) || [];
+
+    setTotalStudents(students.length);
+
+    const votedStudents = students.filter(
+      (student) =>
+        localStorage.getItem(
+          `voted_${electionYear}_${student.matric}`
+        ) === "true"
+    );
+
+    setVotedCount(votedStudents.length);
+  };
+
+  // ================= ON PAGE LOAD =================
+  useEffect(() => {
+    loadVotingData();
+  }, [electionYear]);
+
+  // ================= LISTEN AFTER VOTE =================
+  useEffect(() => {
+    window.addEventListener("voteUpdated", loadVotingData);
+
+    return () => {
+      window.removeEventListener("voteUpdated", loadVotingData);
+    };
+  }, []);
 
   // ================= LOGOUT =================
   const handleLogout = () => {
@@ -34,6 +66,11 @@ function Dashboard() {
     localStorage.removeItem("studentName");
     navigate("/login");
   };
+
+  const turnoutPercentage =
+    totalStudents === 0
+      ? 0
+      : Math.round((votedCount / totalStudents) * 100);
 
   return (
     <div style={{ minHeight: "100vh", background: "#f4f6f9" }}>
@@ -49,58 +86,54 @@ function Dashboard() {
 
       <div className="container py-5">
 
-        {/* ================= WELCOME CARD ================= */}
+        {/* ================= WELCOME ================= */}
         <div className="card shadow-sm mb-4">
           <div className="card-body">
-            <h4 className="fw-bold mb-1">
-              Welcome, {studentName}
-            </h4>
-            <p className="text-muted mb-0">
+            <h4 className="fw-bold mb-1">Welcome, {studentName}</h4>
+            <p className="text-muted">
               Matric Number: <strong>{matricNumber}</strong>
             </p>
           </div>
         </div>
 
-        {/* ================= DASHBOARD CARDS ================= */}
         <div className="row">
 
           {/* ===== VOTING STATUS ===== */}
-          <div className="col-md-4 mb-4">
-            <div className="card shadow-sm h-100 text-center">
+          <div className="col-md-3 mb-4">
+            <div className="card shadow-sm text-center h-100">
               <div className="card-body">
                 <h5 className="fw-bold">Your Voting Status</h5>
 
                 {hasVoted ? (
-                  <p className="text-success fw-semibold mt-3">
-                    ✅ You have voted
-                  </p>
+                  <>
+                    <h5 className="text-success mt-3 fw-bold">
+                      ✅ YOU HAVE VOTED
+                    </h5>
+                    <span className="badge bg-success mt-2">
+                      VERIFIED
+                    </span>
+                  </>
                 ) : (
-                  <p className="text-danger fw-semibold mt-3">
-                    ❌ You have not voted
-                  </p>
+                  <h5 className="text-danger mt-3 fw-bold">
+                    ❌ NOT VOTED
+                  </h5>
                 )}
 
-                <small className="text-muted">
-                  One student — one vote.
+                <small className="text-muted d-block mt-2">
+                  One student — one vote
                 </small>
               </div>
             </div>
           </div>
 
           {/* ===== ELECTION INFO ===== */}
-          <div className="col-md-4 mb-4">
-            <div className="card shadow-sm h-100 text-center">
+          <div className="col-md-3 mb-4">
+            <div className="card shadow-sm text-center h-100">
               <div className="card-body">
-                <h5 className="fw-bold">Election Information</h5>
-
-                <p className="mt-3 mb-1">
-                  Students’ Union Government (SUG)
+                <h5 className="fw-bold">Election Info</h5>
+                <p className="mt-3 fw-semibold">
+                  Year: {electionYear}
                 </p>
-
-                <p className="fw-semibold">
-                  Election Year: {electionYear}
-                </p>
-
                 <p
                   className={`fw-bold ${
                     votingStatus === "open"
@@ -114,14 +147,29 @@ function Dashboard() {
             </div>
           </div>
 
+          {/* ===== LIVE TURNOUT ===== */}
+          <div className="col-md-3 mb-4">
+            <div className="card shadow-sm text-center h-100">
+              <div className="card-body">
+                <h5 className="fw-bold">Live Turnout</h5>
+                <h3 className="text-success mt-3">
+                  {turnoutPercentage}%
+                </h3>
+                <p>
+                  {votedCount} of {totalStudents} voted
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* ===== ACTION ===== */}
-          <div className="col-md-4 mb-4">
-            <div className="card shadow-sm h-100 text-center">
+          <div className="col-md-3 mb-4">
+            <div className="card shadow-sm text-center h-100">
               <div className="card-body">
                 <h5 className="fw-bold">Action</h5>
 
                 <button
-                  className={`btn mt-3 w-100 ${
+                  className={`btn w-100 mt-3 ${
                     hasVoted
                       ? "btn-secondary"
                       : votingStatus !== "open"
@@ -132,25 +180,15 @@ function Dashboard() {
                   onClick={() => navigate("/vote")}
                 >
                   {hasVoted
-                    ? "✅ Already Voted"
+                    ? "✔ VOTE SUBMITTED"
                     : votingStatus !== "open"
                     ? "🚫 Voting Closed"
                     : "🗳️ Proceed to Vote"}
                 </button>
-
-                <small className="text-muted d-block mt-2">
-                  Voting is allowed only when opened by the Electoral Committee.
-                </small>
               </div>
             </div>
           </div>
 
-        </div>
-
-        {/* ================= NOTICE ================= */}
-        <div className="alert alert-info mt-4 text-center">
-          🗳️ This election is conducted under the supervision of the
-          Students’ Union Government Electoral Committee.
         </div>
       </div>
     </div>

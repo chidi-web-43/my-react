@@ -67,7 +67,7 @@ function Vote() {
       return;
     }
 
-    /* SAVE VOTES */
+    /* ================= SAVE VOTES ================= */
     const votesKey = `votes_${electionYear}`;
     const votes = JSON.parse(localStorage.getItem(votesKey)) || {};
 
@@ -77,7 +77,13 @@ function Vote() {
 
     localStorage.setItem(votesKey, JSON.stringify(votes));
 
-    /* ================= DISABLE OTP AFTER VOTING ================= */
+    /* ================= MARK STUDENT AS VOTED ================= */
+    localStorage.setItem(
+      `voted_${electionYear}_${matricNumber}`,
+      "true"
+    );
+
+    /* ================= UPDATE STUDENT RECORD ================= */
     const studentsKey = `students_${electionYear}`;
     const students =
       JSON.parse(localStorage.getItem(studentsKey)) || [];
@@ -99,7 +105,7 @@ function Vote() {
       JSON.stringify(updatedStudents)
     );
 
-    /* SAVE RECEIPT */
+    /* ================= SAVE RECEIPT ================= */
     const receipt = {
       electionYear,
       matricNumber,
@@ -112,8 +118,12 @@ function Vote() {
       JSON.stringify(receipt)
     );
 
+    /* ================= NOTIFY DASHBOARD ================= */
+    window.dispatchEvent(new Event("voteUpdated"));
+
     alert("✅ Vote submitted successfully!");
-    navigate("/receipt");
+
+    navigate("/dashboard");
   };
 
   return (
