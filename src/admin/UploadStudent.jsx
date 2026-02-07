@@ -15,7 +15,6 @@ function UploadStudent() {
   const [email, setEmail] = useState("");
   const [searchMatric, setSearchMatric] = useState("");
 
-
   /* ================= LOAD STUDENTS ================= */
   useEffect(() => {
     const stored =
@@ -45,8 +44,19 @@ function UploadStudent() {
       return;
     }
 
+    // ❌ Prevent duplicate matric
     if (students.some((s) => s.matric === matric)) {
-      alert("This matric number already exists");
+      alert("❌ This matric number already exists");
+      return;
+    }
+
+    // ✅ PREVENT DUPLICATE EMAIL (NEW LOGIC)
+    if (
+      students.some(
+        (s) => s.email?.toLowerCase() === email.toLowerCase()
+      )
+    ) {
+      alert("❌ This email is already assigned to another student");
       return;
     }
 
