@@ -44,13 +44,11 @@ function UploadStudent() {
       return;
     }
 
-    // ❌ Prevent duplicate matric
     if (students.some((s) => s.matric === matric)) {
       alert("❌ This matric number already exists");
       return;
     }
 
-    // ✅ PREVENT DUPLICATE EMAIL (NEW LOGIC)
     if (
       students.some(
         (s) => s.email?.toLowerCase() === email.toLowerCase()
@@ -63,7 +61,7 @@ function UploadStudent() {
     const newStudent = {
       name,
       matric,
-      email,
+      email: email.toLowerCase(),
       hasVoted: false,
     };
 
@@ -76,6 +74,86 @@ function UploadStudent() {
     setName("");
     setMatric("");
     setEmail("");
+  };
+
+  /* ================= BULK CSV UPLOAD ================= */
+  const handleCSVUpload = (e) => {
+    if (votingStatus === "open") {
+      alert("❌ Voting has started. You cannot upload students.");
+      return;
+    }
+
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+      const text = event.target.result;
+      const rows = text.split("\n").map((row) => row.trim());
+
+      let updatedStudents = [...students];
+      let addedCount = 0;
+
+      rows.forEach((row, index) => {
+        if (!row) return;
+
+        if (index === 0 && row.toLowerCase().includes("name")) return;
+
+        const [name, matric, email] = row.split(",");
+
+        if (!name || !matric || !email) return;
+
+        const cleanMatric = matric.replace(/\D/g, "").trim();
+        const cleanEmail = email.trim().toLowerCase();
+
+        const matricExists = updatedStudents.some(
+          (s) => s.matric === cleanMatric
+        );
+
+        const emailExists = updatedStudents.some(
+          (s) => s.email?.toLowerCase() === cleanEmail
+        );
+
+        if (!matricExists && !emailExists) {
+          updatedStudents.push({
+            name: name.trim(),
+            matric: cleanMatric,
+            email: cleanEmail,
+            hasVoted: false,
+          });
+          addedCount++;
+        }
+      });
+
+      setStudents(updatedStudents);
+      localStorage.setItem(storageKey, JSON.stringify(updatedStudents));
+
+      alert(`✅ ${addedCount} students uploaded successfully`);
+    };
+
+    reader.readAsText(file);
+  };
+
+  /* ================= DOWNLOAD CSV TEMPLATE ================= */
+  const downloadTemplate = () => {
+    const csvContent =
+      "name,matric,email\n" +
+      "John Doe,12345,johndoe@gmail.com\n" +
+      "Mary James,67890,maryjames@gmail.com\n";
+
+    const blob = new Blob([csvContent], {
+      type: "text/csv;charset=utf-8;",
+    });
+
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+
+    link.href = url;
+    link.setAttribute("download", "student_upload_template.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   /* ================= DELETE STUDENT ================= */
@@ -109,7 +187,6 @@ function UploadStudent() {
         </div>
       )}
 
-      {/* ADD STUDENT FORM */}
       <div className="card shadow-sm p-4 mb-4">
         <input
           className="form-control mb-3"
@@ -144,9 +221,29 @@ function UploadStudent() {
         >
           Upload Student
         </button>
+
+        <hr />
+        <label className="fw-bold mt-3">Bulk Upload (CSV)</label>
+        <input
+          type="file"
+          accept=".csv"
+          className="form-control mt-2"
+          disabled={votingStatus === "open"}
+          onChange={handleCSVUpload}
+        />
+        <small className="text-muted">
+          Format: name,matric,email
+        </small>
+
+        <button
+          type="button"
+          className="btn btn-outline-secondary mt-2"
+          onClick={downloadTemplate}
+        >
+          ⬇ Download CSV Template
+        </button>
       </div>
 
-      {/* STUDENT LIST */}
       <div className="card shadow-sm">
         <div className="card-body">
           <h5 className="fw-bold mb-3">

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 
+
 function AdminResults() {
   const electionYear =
     localStorage.getItem("electionYear") ||
@@ -68,10 +69,12 @@ function AdminResults() {
                 </tbody>
               </table>
             </div>
+            
           </div>
         );
       })}
     </div>
+    
   );
 }
 

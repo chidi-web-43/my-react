@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Footer from "../components/Footer";
 
 function Results() {
   const electionYear =
@@ -70,6 +71,7 @@ function Results() {
           📌 Results displayed are automatically computed from submitted votes.
         </div>
       </div>
+      <Footer />
     </div>
   );
 }
