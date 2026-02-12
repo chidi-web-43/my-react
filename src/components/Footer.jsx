@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import logo from "../assets/logo1.png";
 import { FaFacebookF, FaXTwitter, FaInstagram, FaEnvelope } from "react-icons/fa6";
 
@@ -35,10 +36,10 @@ function Footer() {
           <div className="col-md-4 mb-4">
             <h5 className="fw-bold">Quick Links</h5>
             <ul className="list-unstyled small">
-              <li><a href="/" className="footer-link">Home</a></li>
-              <li><a href="/login" className="footer-link">Student Login</a></li>
-              <li><a href="/results" className="footer-link">Election Results</a></li>
-              <li><a href="#" className="footer-link">Voting Guidelines</a></li>
+              <li><Link to="/" className="footer-link">Home</Link></li>
+              <li><Link to="/login" className="footer-link">Student Login</Link></li>
+              <li><Link to="/results" className="footer-link">Election Results</Link></li>
+              <li><Link to="/guidelines" className="footer-link">Voting Guidelines</Link></li>
             </ul>
           </div>
 
@@ -81,3 +82,4 @@ function Footer() {
 }
 
 export default Footer;
+
