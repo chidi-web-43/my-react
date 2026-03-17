@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import Footer from "../components/Footer";
-import logo from "../assets/logo1.png";
-import { useEffect, useState } from "react";
+import logo from "../assets/logo.png";
+import { useEffect } from "react";
 import "../App.css";
 
 function Home() {
@@ -22,35 +22,6 @@ const heroImages = [
   "https://images.pexels.com/photos/207691/pexels-photo-207691.jpeg"
 ];
 
-
-  /* ================= COUNTDOWN ================= */
-  const [timeLeft, setTimeLeft] = useState("");
-
-  useEffect(() => {
-    const electionDate = new Date(`${electionYear}-12-01T08:00:00`);
-
-    const timer = setInterval(() => {
-      const now = new Date();
-      const diff = electionDate - now;
-
-      if (diff <= 0) {
-        setTimeLeft("🗳️ Voting has started!");
-        clearInterval(timer);
-        return;
-      }
-
-      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-      const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-      const minutes = Math.floor((diff / (1000 * 60)) % 60);
-      const seconds = Math.floor((diff / 1000) % 60);
-
-      setTimeLeft(
-        `${days} days • ${hours} hrs • ${minutes} mins • ${seconds} seconds remaining`
-      );
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [electionYear]);
 
   /* ================= SLIDER ================= */
   useEffect(() => {
@@ -117,11 +88,6 @@ const heroImages = [
                         Secure • Transparent • One Student, One Vote
                       </p>
 
-
-                      {/* COUNTDOWN */}
-                      <div className="alert alert-warning fw-semibold w-75">
-                        ⏳ Election Countdown: {timeLeft}
-                      </div>
 
                       {/* BUTTONS */}
                       <div className="mt-4">
@@ -218,7 +184,6 @@ const heroImages = [
           </p>
         </div>
       </section>
-
       <Footer />
     </div>
   );

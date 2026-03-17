@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { logAction } from "../utils/auditLogger";
 
 function Vote() {
   const navigate = useNavigate();

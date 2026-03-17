@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import Vote from "./pages/Vote";
 import Results from "./pages/Results";
 import Receipt from "./pages/Receipt";
+import Guidelines from "./pages/Guidelines"
 
 /* ADMIN */
 import AdminLogin from "./admin/AdminLogin";
@@ -106,6 +107,7 @@ function App() {
             </AdminRoute>
           }
         />
+        <Route path="/guidelines" element={<Guidelines />} />
       </Routes>
     </Router>
   );

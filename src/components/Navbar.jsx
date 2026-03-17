@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useRef } from "react";
-import logo from "../assets/logo1.png";
+import logo from "../assets/logo.png";
 
 function Navbar() {
   const navigate = useNavigate();
@@ -34,8 +34,8 @@ function Navbar() {
           <img
             src={logo}
             alt="UAES Logo"
-            width="70"
-            height="70"
+            width="100"
+            height="100"
             className="me-2"
           />
 
@@ -78,6 +78,12 @@ function Navbar() {
             <li className="nav-item">
               <Link className="nav-link" to="/results" onClick={closeNavbar}>
                 Results
+              </Link>
+            </li>
+
+            <li className="nav-item">
+              <Link className="nav-link" to="/guidelines" onClick={closeNavbar}>
+                Guidelines
               </Link>
             </li>
 

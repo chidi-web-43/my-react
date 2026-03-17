@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { isElectionLocked } from "../utils/ElectionLock";
+import Footer from "../components/Footer";
 
 function ManageCandidates() {
   const navigate = useNavigate();
@@ -136,6 +137,8 @@ function ManageCandidates() {
           </div>
         ))}
       </div>
+
+      <Footer />
     </div>
   );
 }
